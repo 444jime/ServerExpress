@@ -1,0 +1,39 @@
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    volumes:
+      - ../mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: dbserverexpress25
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      start_period: 10s
+
+  serverexpress:
+    image: serverexpress
+    container_name: serverexpress
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    depends_on:
+      - mysql
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    restart: always
